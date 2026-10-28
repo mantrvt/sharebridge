@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBridge Session</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="muted">Session code</div>
+      <div class="code" id="code"></div>
+      <div class="muted">Expires in <span id="timer">--</span> of inactivity</div>
+    </div>
+    <img id="qr" class="qr" width="140" height="140" alt="QR">
+  </div>
+  <div class="muted" id="join-url"></div>
+  <div id="devices" style="margin-top:8px"></div>
+
+  <div class="card">
+    <h2>Text</h2>
+    <textarea id="text" placeholder="Paste or type text here..."></textarea>
+    <div class="row" style="margin-top:8px"><button id="send">Share text</button></div>
+    <div id="texts"></div>
+  </div>
+
+  <div class="card">
+    <h2>Files</h2>
+    <div class="drop" id="drop">Drag &amp; drop files here, or tap to choose (max 50 MB each)</div>
+    <input type="file" id="picker" multiple hidden>
+    <div class="err" id="ferr"></div>
+    <div id="files"></div>
+  </div>
+
+  <div class="row">
+    <button class="ghost" id="leave">Leave session</button>
+    <button class="danger" id="delete">Delete session for everyone</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const CODE = location.pathname.split('/').pop().toUpperCase();
+document.getElementById('code').textContent = CODE;
+
+// Device name stored locally (no login)
+let device = localStorage.getItem('sb-device');
+if (!device) {
+  const ua = navigator.userAgent;
+  const kind = /iPhone|Android.*Mobile/.test(ua) ? 'Phone' : /iPad|Android/.test(ua) ? 'Tablet' : 'Computer';
+  device = kind + '-' + Math.floor(Math.random() * 900 + 100);
+  localStorage.setItem('sb-device', device);
+}
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtSize = n => n > 1048576 ? (n/1048576).toFixed(1)+' MB' : n > 1024 ? (n/1024).toFixed(0)+' KB' : n+' B';
+const time = t => new Date(t).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+let expiresAt = 0;
+
+const socket = io();
+let ended = false;
+
+socket.on('connect', () => {
+  socket.emit('join-session', CODE, device, res => {
+    if (res.error) { alert(res.error); location.href = '/'; return; }
+    $('texts').innerHTML = ''; $('files').innerHTML = '';
+    res.state.texts.forEach(addText);
+    res.state.files.forEach(addFile);
+    expiresAt = res.state.expiresAt;
+  });
+});
+
+socket.on('text-added', t => { addText(t); expiresAt = Date.now() + 2*3600*1000; });
+socket.on('file-added', f => { addFile(f); expiresAt = Date.now() + 2*3600*1000; });
+socket.on('text-deleted', id => document.getElementById('t-' + id)?.remove());
+socket.on('file-deleted', id => document.getElementById('f-' + id)?.remove());
+socket.on('devices', list => {
+  $('devices').innerHTML = list.map(d => `<span class="pill">${esc(d)}${d === device ? ' (you)' : ''}</span>`).join('');
+});
+socket.on('session-ended', reason => {
+  ended = true;
+  alert(reason === 'expired' ? 'Session expired.' : 'Session was deleted.');
+  location.href = '/';
+});
+
+function addText(t) {
+  const el = document.createElement('div');
+  el.className = 'item'; el.id = 't-' + t.id;
+  el.innerHTML = `<div class="meta">${esc(t.from)} · ${time(t.addedAt)}</div><pre>${esc(t.text)}</pre>
+    <div class="row"><button class="small copy">Copy</button><button class="small ghost del">Delete</button></div>`;
+  el.querySelector('.copy').onclick = async e => {
+    try { await navigator.clipboard.writeText(t.text); }
+    catch { const ta = document.createElement('textarea'); ta.value = t.text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    e.target.textContent = 'Copied!'; setTimeout(() => e.target.textContent = 'Copy', 1200);
+  };
+  el.querySelector('.del').onclick = () => socket.emit('delete-text', t.id);
+  $('texts').prepend(el);
+}
+
+function addFile(f) {
+  const el = document.createElement('div');
+  el.className = 'item'; el.id = 'f-' + f.id;
+  el.innerHTML = `<div class="meta">${time(f.addedAt)}</div><pre>${esc(f.name)} <span class="muted">(${fmtSize(f.size)})</span></pre>
+    <div class="row"><a href="/api/sessions/${CODE}/files/${f.id}" download><button class="small">Download</button></a><button class="small ghost del">Delete</button></div>`;
+  el.querySelector('.del').onclick = () => socket.emit('delete-file', f.id);
+  $('files').prepend(el);
+}
+
+$('send').onclick = () => {
+  const v = $('text').value;
+  if (!v.trim()) return;
+  socket.emit('add-text', v, () => { $('text').value = ''; });
+};
+
+async function upload(files) {
+  if (!files.length) return;
+  $('ferr').textContent = '';
+  const fd = new FormData();
+  [...files].forEach(f => fd.append('files', f));
+  $('drop').textContent = 'Uploading...';
+  const r = await fetch(`/api/sessions/${CODE}/files`, { method: 'POST', body: fd });
+  $('drop').textContent = 'Drag & drop files here, or tap to choose (max 50 MB each)';
+  if (!r.ok) { const j = await r.json().catch(() => ({})); $('ferr').textContent = j.error || 'Upload failed'; }
+}
+$('drop').onclick = () => $('picker').click();
+$('picker').onchange = e => { upload(e.target.files); e.target.value = ''; };
+['dragover','dragenter'].forEach(ev => $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('over'); }));
+['dragleave','drop'].forEach(ev => $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('over'); }));
+$('drop').addEventListener('drop', e => upload(e.dataTransfer.files));
+
+$('leave').onclick = () => { location.href = '/'; };
+$('delete').onclick = () => {
+  if (confirm('Delete this session and all its files for everyone?')) socket.emit('delete-session');
+};
+
+fetch(`/api/sessions/${CODE}/qr`).then(r => r.json()).then(j => {
+  if (j.qr) { $('qr').src = j.qr; $('join-url').textContent = j.joinUrl; }
+});
+
+setInterval(() => {
+  const ms = Math.max(0, expiresAt - Date.now());
+  $('timer').textContent = expiresAt ? Math.floor(ms/3600000) + 'h ' + Math.floor(ms%3600000/60000) + 'm' : '--';
+}, 1000);
+</script>
+</body>
+</html>

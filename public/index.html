@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBridge</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>ShareBridge</h1>
+  <p class="muted">Share files and text between your devices. No login, no account.</p>
+
+  <div class="card">
+    <h2>Start a new session</h2>
+    <button id="create">Create session</button>
+  </div>
+
+  <div class="card">
+    <h2>Join with a code</h2>
+    <div class="row">
+      <input type="text" id="code" placeholder="Enter code e.g. K7P2QX" maxlength="6" autocapitalize="characters" autocomplete="off">
+      <button id="join">Join</button>
+    </div>
+    <div class="err" id="err"></div>
+    <p class="muted">Or scan the QR code shown on the other device with your camera.</p>
+  </div>
+</div>
+<script>
+document.getElementById('create').onclick = async () => {
+  const r = await fetch('/api/sessions', { method: 'POST' });
+  const { code } = await r.json();
+  location.href = '/s/' + code;
+};
+async function join() {
+  const code = document.getElementById('code').value.trim().toUpperCase();
+  const err = document.getElementById('err');
+  if (!code) return;
+  const r = await fetch('/api/sessions/' + code);
+  const { exists } = await r.json();
+  if (exists) location.href = '/s/' + code; else err.textContent = 'Session not found.';
+}
+document.getElementById('join').onclick = join;
+document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+:root { --bg:#0f172a; --card:#1e293b; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#6366f1; --danger:#ef4444; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+.wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+h1 { margin: 8px 0 4px; } h2 { margin: 0 0 12px; font-size: 1.05rem; }
+.muted { color: var(--muted); font-size: .9rem; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin:16px 0; }
+button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:1rem; cursor:pointer; }
+button.ghost { background:transparent; border:1px solid var(--border); color:var(--text); }
+button.danger { background:var(--danger); }
+button.small { padding:6px 10px; font-size:.85rem; }
+input[type=text], textarea { width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:1rem; font-family:inherit; }
+textarea { min-height:80px; resize:vertical; }
+.row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.row > input { flex:1; min-width:140px; }
+.code { font-size:2rem; font-weight:700; letter-spacing:.2em; font-family:monospace; }
+.item { border:1px solid var(--border); border-radius:8px; padding:10px; margin-top:10px; background:var(--bg); }
+.item pre { margin:0 0 8px; white-space:pre-wrap; word-break:break-word; font-family:inherit; }
+.item .meta { color:var(--muted); font-size:.8rem; margin-bottom:6px; }
+.drop { border:2px dashed var(--border); border-radius:10px; padding:24px; text-align:center; color:var(--muted); cursor:pointer; }
+.drop.over { border-color:var(--accent); color:var(--text); }
+.top { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+.err { color:var(--danger); min-height:1.2em; }
+.qr { background:#fff; border-radius:8px; padding:6px; }
+.pill { display:inline-block; background:var(--bg); border:1px solid var(--border); padding:2px 10px; border-radius:99px; margin:2px; font-size:.8rem; }
