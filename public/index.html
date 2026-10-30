@@ -9,6 +9,8 @@
 <meta property="og:title" content="Sharelah - No-login file and text sharing">
 <meta property="og:description" content="Connect two devices with a code or QR and share files and text instantly. No account needed.">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Sharelah">
+<meta name="application-name" content="Sharelah">
 <meta name="theme-color" content="#0f172a">
 <link rel="stylesheet" href="/style.css">
 </head>
@@ -31,6 +33,30 @@
     <div class="err" id="err"></div>
     <p class="muted">Or scan the QR code shown on the other device with your camera.</p>
   </div>
+
+  <div class="card" id="how">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><strong>Create a session.</strong> Tap "Create session" on your laptop. You get a 6-character code and a QR code.</li>
+      <li><strong>Connect your other device.</strong> Scan the QR with your phone camera, or type the code under "Join with a code".</li>
+      <li><strong>Share.</strong> Paste text or upload files on one device. They appear on the other instantly, ready to copy or download.</li>
+      <li><strong>Delete when done.</strong> Press "Delete session for everyone" and all text and files are wiped from the server.</li>
+    </ol>
+  </div>
+
+  <div class="card" id="faq">
+    <h2>FAQ</h2>
+    <details><summary>Do I need to create an account or log in?</summary><p>No. There is no sign-up and no login. Anyone with the session code can join, so keep the code to yourself.</p></details>
+    <details><summary>Is Sharelah free?</summary><p>Yes, it is free to use.</p></details>
+    <details><summary>How big can a file be?</summary><p>Up to 50 MB per file. You can upload several files at once.</p></details>
+    <details><summary>How long do my files stay?</summary><p>Until you delete the session, or after 2 hours with no activity, whichever comes first. A server restart also clears everything.</p></details>
+    <details><summary>Can I use it between a phone and a laptop on different networks?</summary><p>Yes. Devices connect through the Sharelah server, so they do not need to be on the same Wi-Fi.</p></details>
+    <details><summary>Is it private?</summary><p>Files are stored temporarily on the server and only people who have your code can reach them. Do not upload highly sensitive documents. Always delete the session when you finish.</p></details>
+    <details><summary>Which devices and browsers work?</summary><p>Any device with a modern browser: Chrome, Safari, Edge or Firefox, on phone, tablet or computer.</p></details>
+    <details><summary>What can I share?</summary><p>Plain text, links, code snippets, and files such as documents, images and PDFs. Handy for moving assignment work between devices.</p></details>
+  </div>
+
+  <p class="muted" style="text-align:center">Sharelah &middot; no login, no account</p>
 </div>
 <script>
 document.getElementById('create').onclick = async () => {
