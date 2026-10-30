@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: sharebridge
+    name: sharelah
     runtime: node
     plan: free
     buildCommand: npm install

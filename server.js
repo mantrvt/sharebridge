@@ -51,6 +51,17 @@ setInterval(() => {
   for (const [code, s] of sessions) if (now - s.lastActive > EXPIRY_MS) destroySession(code, 'expired');
 }, 60 * 1000);
 
+// SEO: robots + sitemap built from the live host (session pages are noindex)
+app.get('/robots.txt', (req, res) => res.type('text/plain').send(
+  `User-agent: *
+Disallow: /s/
+Disallow: /api/
+Sitemap: ${req.protocol}://${req.headers.host}/sitemap.xml
+`));
+app.get('/sitemap.xml', (req, res) => res.type('application/xml').send(
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${req.protocol}://${req.headers.host}/</loc></url></urlset>`));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -187,7 +198,7 @@ async function broadcastDevices(code) {
 app.get('/s/:code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'session.html')));
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`ShareBridge running:  http://localhost:${PORT}`);
+  console.log(`Sharelah running:  http://localhost:${PORT}`);
   for (const list of Object.values(os.networkInterfaces()))
     for (const n of list) if (n.family === 'IPv4' && !n.internal) console.log(`On your network:      http://${n.address}:${PORT}`);
 });

@@ -1,4 +1,4 @@
-# ShareBridge
+# Sharelah
 Login-free file and text sharing between devices. Join with a code or QR, delete the session when done.
 
     npm install

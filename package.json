@@ -1,5 +1,5 @@
 {
-  "name": "sharebridge",
+  "name": "sharelah",
   "version": "1.0.0",
   "description": "Login-free session sharing between devices",
   "main": "server.js",
